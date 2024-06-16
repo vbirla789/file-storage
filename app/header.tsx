@@ -1,4 +1,10 @@
-import { OrganizationSwitcher, UserButton, UserProfile } from "@clerk/nextjs";
+import {
+  OrganizationSwitcher,
+  SignedIn,
+  SignInButton,
+  UserButton,
+  UserProfile,
+} from "@clerk/nextjs";
 
 export function Header() {
   return (
@@ -8,6 +14,7 @@ export function Header() {
         <div className="flex gap-2">
           <OrganizationSwitcher />
           <UserButton />
+          <SignInButton />
         </div>
       </div>
     </div>
