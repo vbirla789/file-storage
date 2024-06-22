@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 export default function FavouritesPage() {
   return (
     <div>
-      <FileBrowser title="Favourites" favorites />
+      <FileBrowser title="Favourites" favoritesOnly />
     </div>
   );
 }

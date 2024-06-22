@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import Image from "next/image";
 import { FileIcon, Loader2, StarIcon } from "lucide-react";
 import { SearchBar } from "@/components/ui/search-bar";
-import { useState } from "react";
+import { use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { UploadButton } from "@/app/dashboard/_components/upload-button";
@@ -31,10 +31,10 @@ function Placeholder() {
 
 export function FileBrowser({
   title,
-  favorites,
+  favoritesOnly,
 }: {
   title: string;
-  favorites?: boolean;
+  favoritesOnly?: boolean;
 }) {
   const organization = useOrganization();
   const user = useUser();
@@ -45,9 +45,14 @@ export function FileBrowser({
     orgId = organization.organization?.id ?? user.user?.id;
   }
 
+  const favorites = useQuery(
+    api.files.getAllFavorites,
+    orgId ? { orgId } : "skip"
+  );
+
   const files = useQuery(
     api.files.getFiles,
-    orgId ? { orgId, query, favorites } : "skip"
+    orgId ? { orgId, query, favorites: favoritesOnly } : "skip"
   );
   const isLoading = files === undefined;
 
@@ -72,7 +77,13 @@ export function FileBrowser({
 
           <div className="grid grid-cols-3 gap-4">
             {files?.map((file) => {
-              return <FileCard key={file._id} file={file} />;
+              return (
+                <FileCard
+                  favorites={favorites ?? []}
+                  key={file._id}
+                  file={file}
+                />
+              );
             })}
           </div>
         </>

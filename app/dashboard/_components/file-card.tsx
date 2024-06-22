@@ -20,6 +20,7 @@ import {
   ImageIcon,
   FileTextIcon,
   StarIcon,
+  StarHalf,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -37,9 +38,14 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
-import { toggleFavorite } from "@/convex/files";
 
-function FileCardActions({ file }: { file: Doc<"files"> }) {
+function FileCardActions({
+  file,
+  isFavorited,
+}: {
+  file: Doc<"files">;
+  isFavorited: boolean;
+}) {
   const deleteFile = useMutation(api.files.deleteFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
@@ -76,7 +82,9 @@ function FileCardActions({ file }: { file: Doc<"files"> }) {
       </AlertDialog>
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <MoreVertical />
+          <Button variant="ghost">
+            <MoreVertical />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
@@ -85,8 +93,17 @@ function FileCardActions({ file }: { file: Doc<"files"> }) {
               toggleFavorite({ fileId: file._id });
             }}
           >
-            <StarIcon className="w-4 h-4" />
-            Favorite
+            {isFavorited ? (
+              <div className="flex gap-1 items-center">
+                <StarIcon className="w-4 h-4" />
+                Unfavorite
+              </div>
+            ) : (
+              <div className="flex gap-1 items-center">
+                <StarHalf className="w-4 h-4" />
+                Favorite
+              </div>
+            )}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -106,12 +123,22 @@ function getFileUrl(fileId: Id<"_storage">): string {
   return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${fileId}`;
 }
 
-export function FileCard({ file }: { file: Doc<"files"> }) {
+export function FileCard({
+  file,
+  favorites = [],
+}: {
+  file: Doc<"files">;
+  favorites?: Doc<"favorites">[];
+}) {
   const typeIcons: Record<Doc<"files">["type"], ReactNode> = {
     image: <ImageIcon />,
     pdf: <FileTextIcon />,
     csv: <GanttChartIcon />,
   };
+
+  const isFavorited = favorites.some(
+    (favorite) => favorite.fileId === file._id
+  );
 
   return (
     <Card>
@@ -123,7 +150,7 @@ export function FileCard({ file }: { file: Doc<"files"> }) {
           {file.name}
         </CardTitle>
         <div className="absolute top-2 right-2">
-          <FileCardActions file={file} />
+          <FileCardActions isFavorited={isFavorited} file={file} />
         </div>
       </CardHeader>
       <CardContent className="h-[200px] flex justify-center items-center">
@@ -135,8 +162,8 @@ export function FileCard({ file }: { file: Doc<"files"> }) {
             height={100}
           />
         )}
-        {file.type === "csv" && <GanttChartIcon className="w-20 h-20 " />}
-        {file.type === "pdf" && <FileTextIcon className="w-20 h-20 " />}
+        {file.type === "csv" && <GanttChartIcon className="w-20 h-20" />}
+        {file.type === "pdf" && <FileTextIcon className="w-20 h-20" />}
       </CardContent>
       <CardFooter className="flex justify-center">
         <Button
