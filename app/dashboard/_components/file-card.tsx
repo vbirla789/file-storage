@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,6 +19,7 @@ import {
   GanttChartIcon,
   ImageIcon,
   FileTextIcon,
+  StarIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -35,9 +37,11 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
+import { toggleFavorite } from "@/convex/files";
 
 function FileCardActions({ file }: { file: Doc<"files"> }) {
   const deleteFile = useMutation(api.files.deleteFile);
+  const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -75,6 +79,16 @@ function FileCardActions({ file }: { file: Doc<"files"> }) {
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuItem
+            className="flex gap-1 items-center cursor-pointer"
+            onClick={() => {
+              toggleFavorite({ fileId: file._id });
+            }}
+          >
+            <StarIcon className="w-4 h-4" />
+            Favorite
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="flex gap-1 text-red-600 items-center cursor-pointer"
             onClick={() => setIsConfirmOpen(true)}
