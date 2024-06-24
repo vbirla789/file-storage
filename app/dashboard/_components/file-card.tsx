@@ -21,6 +21,7 @@ import {
   FileTextIcon,
   StarIcon,
   StarHalf,
+  UndoIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -48,6 +49,7 @@ function FileCardActions({
   isFavorited: boolean;
 }) {
   const deleteFile = useMutation(api.files.deleteFile);
+  const restoreFile = useMutation(api.files.restoreFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -59,8 +61,8 @@ function FileCardActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              file and remove your data from our servers.
+              This action will mark the file for deletion process. Files are
+              deleted periodically.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -69,8 +71,8 @@ function FileCardActions({
               onClick={async () => {
                 await deleteFile({ fileId: file._id });
                 toast({
-                  title: "File Deleted",
-                  description: "Your file has been deleted",
+                  title: "File marked for deletion",
+                  description: "Your file will be deleted shortly.",
                   variant: "default",
                 });
                 setIsConfirmOpen(false);
@@ -110,11 +112,29 @@ function FileCardActions({
           <Protect role="org:admin" fallback={<></>}>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="flex gap-1 text-red-600 items-center cursor-pointer"
-              onClick={() => setIsConfirmOpen(true)}
+              className="flex gap-1 items-center cursor-pointer"
+              onClick={() => {
+                if (file.shouldDelete) {
+                  restoreFile({ fileId: file._id });
+                  toast({
+                    title: "File restored",
+                    description: "Your file is now restored.",
+                    variant: "default",
+                  });
+                } else {
+                  setIsConfirmOpen(true);
+                }
+              }}
             >
-              <TrashIcon className="w-4 h-4" />
-              Delete
+              {file.shouldDelete ? (
+                <div className="flex gap-1 text-green-600 items-center cursor-pointer">
+                  <UndoIcon className="w-4 h-4" /> Restore
+                </div>
+              ) : (
+                <div className="flex gap-1 text-red-600 items-center cursor-pointer">
+                  <UndoIcon className="w-4 h-4" /> Delete
+                </div>
+              )}
             </DropdownMenuItem>
           </Protect>
         </DropdownMenuContent>
