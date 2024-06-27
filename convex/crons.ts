@@ -4,7 +4,9 @@ import { internal } from "./_generated/api";
 const crons = cronJobs();
 
 crons.interval(
-  "clear messages table",
-  { minutes: 1 }, // every minute
-  internal.messages.clearAll
+  "delete any old files marked for deletion",
+  { minutes: 1 },
+  internal.files.deleteAllfiles
 );
+
+export default crons;
