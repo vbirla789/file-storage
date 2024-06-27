@@ -43,132 +43,15 @@ import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 import { Protect } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
-
-function FileCardActions({
-  file,
-  isFavorited,
-}: {
-  file: Doc<"files">;
-  isFavorited: boolean;
-}) {
-  const deleteFile = useMutation(api.files.deleteFile);
-  const restoreFile = useMutation(api.files.restoreFile);
-  const toggleFavorite = useMutation(api.files.toggleFavorite);
-
-  const { toast } = useToast();
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
-  return (
-    <>
-      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action will mark the file for deletion process. Files are
-              deleted periodically.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await deleteFile({ fileId: file._id });
-                toast({
-                  title: "File marked for deletion",
-                  description: "Your file will be deleted shortly.",
-                  variant: "default",
-                });
-                setIsConfirmOpen(false);
-              }}
-            >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost">
-            <MoreVertical />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            className="flex gap-1 items-center cursor-pointer"
-            onClick={() => {
-              toggleFavorite({ fileId: file._id });
-            }}
-          >
-            {isFavorited ? (
-              <div className="flex gap-1 items-center">
-                <StarIcon className="w-4 h-4" />
-                Unfavorite
-              </div>
-            ) : (
-              <div className="flex gap-1 items-center">
-                <StarHalf className="w-4 h-4" />
-                Favorite
-              </div>
-            )}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="flex gap-1 items-center cursor-pointer"
-            onClick={() => {
-              window.open(getFileUrl(file.fileId), "_blank");
-            }}
-          >
-            <div className="flex gap-1 items-center">
-              <FileIcon className="w-4 h-4" />
-              Download
-            </div>
-          </DropdownMenuItem>
-
-          <Protect role="org:admin" fallback={<></>}>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="flex gap-1 items-center cursor-pointer"
-              onClick={() => {
-                if (file.shouldDelete) {
-                  restoreFile({ fileId: file._id });
-                  toast({
-                    title: "File restored",
-                    description: "Your file is now restored.",
-                    variant: "default",
-                  });
-                } else {
-                  setIsConfirmOpen(true);
-                }
-              }}
-            >
-              {file.shouldDelete ? (
-                <div className="flex gap-1 text-green-600 items-center cursor-pointer">
-                  <UndoIcon className="w-4 h-4" /> Restore
-                </div>
-              ) : (
-                <div className="flex gap-1 text-red-600 items-center cursor-pointer">
-                  <TrashIcon className="w-4 h-4" /> Delete
-                </div>
-              )}
-            </DropdownMenuItem>
-          </Protect>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
-  );
-}
-
-function getFileUrl(fileId: Id<"_storage">): string {
-  return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${fileId}`;
-}
+import {
+  FileCardActions,
+  getFileUrl,
+} from "@/app/dashboard/_components/file-actions";
 
 export function FileCard({
   file,
-  favorites = [],
 }: {
-  file: Doc<"files">;
-  favorites?: Doc<"favorites">[];
+  file: Doc<"files"> & { isFavorited: boolean };
 }) {
   const userProfile = file.userId
     ? useQuery(api.users.getUserProfile, {
@@ -182,10 +65,6 @@ export function FileCard({
     csv: <GanttChartIcon />,
   };
 
-  const isFavorited = favorites.some(
-    (favorite) => favorite.fileId === file._id
-  );
-
   return (
     <Card>
       <CardHeader className="relative">
@@ -196,7 +75,7 @@ export function FileCard({
           {file.name}
         </CardTitle>
         <div className="absolute top-2 right-2">
-          <FileCardActions isFavorited={isFavorited} file={file} />
+          <FileCardActions isFavorited={file.isFavorited} file={file} />
         </div>
       </CardHeader>
       <CardContent className="h-[200px] flex justify-center items-center">
