@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,53 +6,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  TrashIcon,
-  MoreVertical,
-  GanttChartIcon,
-  ImageIcon,
-  FileTextIcon,
-  StarIcon,
-  StarHalf,
-  UndoIcon,
-  FileIcon,
-} from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { ReactNode, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { GanttChartIcon, ImageIcon, FileTextIcon } from "lucide-react";
+import { ReactNode } from "react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
-import { Protect } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
 import {
   FileCardActions,
   getFileUrl,
 } from "@/app/dashboard/_components/file-actions";
 
+function isUserId(
+  value: string | Id<"users"> | undefined
+): value is Id<"users"> {
+  return typeof value === "object" && value !== null && "__tableName" in value;
+}
+
 export function FileCard({
   file,
 }: {
   file: Doc<"files"> & { isFavorited: boolean };
 }) {
-  const userProfile = file.userId
+  // Call useQuery only if file.userId is of type Id<"users">
+  const userProfile = isUserId(file.userId)
     ? useQuery(api.users.getUserProfile, {
         userId: file.userId,
       })
