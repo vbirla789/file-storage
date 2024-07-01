@@ -87,9 +87,10 @@ export function FileBrowser({
   const modifiedFiles =
     files?.map((file) => ({
       ...file,
-      isFavorited: favorites?.some((favorite) => favorite.fileId === file._id),
+      isFavorited: (favorites ?? []).some(
+        (favorite) => favorite.fileId === file._id
+      ),
     })) ?? [];
-
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
