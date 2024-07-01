@@ -18,37 +18,26 @@ import {
   getFileUrl,
 } from "@/app/dashboard/_components/file-actions";
 
-function isUserId(
-  value: string | Id<"users"> | undefined
-): value is Id<"users"> {
-  return typeof value === "object" && value !== null && "__tableName" in value;
-}
-
 export function FileCard({
   file,
 }: {
-  file: Doc<"files"> & { isFavorited: boolean };
+  file: Doc<"files"> & { isFavorited: boolean; url: string | null };
 }) {
-  // Call useQuery only if file.userId is of type Id<"users">
-  const userProfile = isUserId(file.userId)
-    ? useQuery(api.users.getUserProfile, {
-        userId: file.userId,
-      })
-    : undefined;
+  const userProfile = useQuery(api.users.getUserProfile, {
+    userId: file.userId,
+  });
 
-  const typeIcons: Record<Doc<"files">["type"], ReactNode> = {
+  const typeIcons = {
     image: <ImageIcon />,
     pdf: <FileTextIcon />,
     csv: <GanttChartIcon />,
-  };
+  } as Record<Doc<"files">["type"], ReactNode>;
 
   return (
     <Card>
       <CardHeader className="relative">
-        <CardTitle className="flex gap-2 items-center text-base font-normal">
-          <div className="flex justify-center items-center">
-            {typeIcons[file.type]}
-          </div>
+        <CardTitle className="flex gap-2 text-base font-normal">
+          <div className="flex justify-center">{typeIcons[file.type]}</div>{" "}
           {file.name}
         </CardTitle>
         <div className="absolute top-2 right-2">
@@ -56,14 +45,10 @@ export function FileCard({
         </div>
       </CardHeader>
       <CardContent className="h-[200px] flex justify-center items-center">
-        {file.type === "image" && (
-          <Image
-            alt={file.name}
-            src={getFileUrl(file.fileId)}
-            width={200}
-            height={100}
-          />
+        {file.type === "image" && file.url && (
+          <Image alt={file.name} width="200" height="100" src={file.url} />
         )}
+
         {file.type === "csv" && <GanttChartIcon className="w-20 h-20" />}
         {file.type === "pdf" && <FileTextIcon className="w-20 h-20" />}
       </CardContent>
@@ -76,7 +61,7 @@ export function FileCard({
           {userProfile?.name}
         </div>
         <div className="text-xs text-gray-700">
-          Uploaded {formatRelative(new Date(file._creationTime), new Date())}
+          Uploaded on {formatRelative(new Date(file._creationTime), new Date())}
         </div>
       </CardFooter>
     </Card>
